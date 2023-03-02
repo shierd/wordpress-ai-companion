@@ -3,10 +3,10 @@ namespace Dozen\OpenAi;
 
 class Context {
     /**
-     * @var string 前言
+     * @var string INSTRUCTION
      */
-    const PREAMBLE = "Instructions:\nYou are %s, a large language model trained by OpenAI.\nYou answer as concisely as possible for each response (e.g. don't be verbose).\nIt is very important that you answer as concisely as possible, so please remember this.\nIf you are generating a list, do not have too many items. Keep the number of items short.\nCurrent time: %s<|endoftext|>";
-    const MESSAGE_KEY = 'wp_openai_client_message';
+    const INSTRUCTION = "You are ChatGPT, a large language model trained by OpenAI. Answer as concisely as possible. Knowledge cutoff: %s Current date: %s";
+    const MESSAGE_KEY = 'wp_openai_client_message_v2';
     /**
      * @var string 上下文内容
      */
@@ -16,53 +16,70 @@ class Context {
      */
     private $message;
     /**
-     * @var string 用户名字
+     * @var string user label
      */
-    private $userLabel = 'User';
+    const LABEL_USER = 'user';
     /**
-     * @var string AI名字
+     * @var string ai label
      */
-    private $aiLabel = 'ChatGPT';
+    const LABEL_AI = 'assistant';
     /**
-     * @var static 单例
+     * @var string system label
      */
-    private static $instance;
-
-    public static function instance() {
-        if (self::$instance == null) {
-            self::$instance = new static();
-        }
-        return self::$instance;
-    }
+    const LABEL_SYS = 'system';
+    /**
+     * @var string GPT model
+     */
+    private $model;
     
-    public function __construct(){
+    public function __construct($model){
         $this->message = [];
-        $preamble = sprintf(self::PREAMBLE, $this->aiLabel, date('Y-m-d H:i:s'));
-        $this->content = "{$preamble}";
-
+        $this->model = $model;
         // 启动 session
         if(session_status() !== PHP_SESSION_ACTIVE) session_start();
         // 检查 session 是否有上下文消息
         if (isset($_SESSION[self::MESSAGE_KEY])) {
             $this->message = $_SESSION[self::MESSAGE_KEY];
-            foreach ($this->message as $msg) {
-                $this->content .= $this->getMessageContent($msg['label'], $msg['content']);
-            }
+        }
+
+        $this->init();
+    }
+
+    private function init() {
+        switch ($this->model) {
+            case 'text-davinci-003':
+                $preamble = sprintf(self::INSTRUCTION, '2023-03', date('Y-m-d'));
+                $this->content = "Instructions: {$preamble} <|endoftext|>\n";
+                if ($this->message) {
+                    foreach ($this->message as $msg) {
+                        $this->content .= $this->getMessageContent($msg['role'], $msg['content']);
+                    }
+                }
+                break;
+            case 'code-davinci-002':
+                break;
+            case 'gpt-3.5-turbo':
+                $preamble = sprintf(self::INSTRUCTION, '2023-03', date('Y-m-d'));
+                if (empty($this->message)) {
+                    $msg = ['role' => self::LABEL_SYS, 'content' => $preamble];
+                    array_push($this->message, $msg);
+                }
+                break;
         }
     }
 
     private function getMessageContent($label, $content) {
-        return "\n\n{$label}:\n" . $content . '<|endoftext|>';
+        return "{$label}: " . $content . " <|endoftext|>\n";
     }
 
     public function addPrompt($prompt) {
-        $this->content = $this->content . $this->getMessageContent($this->userLabel, $prompt);
-        $this->pushMessage($this->userLabel, $prompt);
+        $this->content = $this->content . $this->getMessageContent(self::LABEL_USER, $prompt);
+        $this->pushMessage(self::LABEL_USER, $prompt);
     }
 
     public function addCompletion($completion) {
-        $this->content = $this->content . $this->getMessageContent($this->aiLabel, $completion);
-        $this->pushMessage($this->aiLabel, $completion);
+        $this->content = $this->content . $this->getMessageContent(self::LABEL_AI, $completion);
+        $this->pushMessage(self::LABEL_AI, $completion);
     }
 
     /**
@@ -70,7 +87,7 @@ class Context {
      */
     private function pushMessage($label, $content) {
         $msg = [
-            'label' => $label,
+            'role' => $label,
             'content' => $content
         ];
         array_push($this->message, $msg);
@@ -83,7 +100,10 @@ class Context {
      * 非严谨处理
      */
     private function shiftMessage() {
-        $length = strlen($this->content);
+        $length = 0;
+        foreach ($this->message as $val) {
+            $length += strlen($val['content']);
+        }
         if (4096 - $length / 2 - 512 - 1024 < 0) {
             array_shift($this->message);
             array_shift($this->message);
@@ -94,11 +114,7 @@ class Context {
         return $this->content;
     }
 
-    public function getUserLabel() {
-        return $this->userLabel;
-    }
-
-    public function getAiLabel() {
-        return $this->aiLabel;
+    public function getMessage() {
+        return $this->message;
     }
 }

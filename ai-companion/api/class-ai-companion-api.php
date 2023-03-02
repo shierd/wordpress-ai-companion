@@ -92,8 +92,9 @@ class Ai_Companion_Api {
 		if (empty($apikey)) {
 			return $this->error('API_KEY not set');
 		}
+		$model = $option['model'] ?? 'text-davinci-003';
 		$data = [
-			'model' => 'text-davinci-003',
+			'model' => $model,
 			'prompt' => $message,
 			'max_tokens' => 1024
 		];

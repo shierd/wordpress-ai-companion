@@ -34,6 +34,7 @@ class OpenAi {
         if (is_wp_error($this->wpResponse)) {
             throw new \Exception($this->wpResponse->get_error_message());
         } else if ($this->wpResponse['response']['code'] != 200) {
+            // var_dump($this->wpResponse);
             throw new \Exception(sprintf("[%s] %s", $this->wpResponse['response']['code'], $this->wpResponse['response']['message']));
         }
         $resp_body = wp_remote_retrieve_body($this->wpResponse);

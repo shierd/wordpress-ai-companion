@@ -3,47 +3,84 @@ namespace Dozen\OpenAi;
 
 class Completions extends OpenAi {
     /**
-     * @var string 接口地址
+     * @var string the api url
      */
-    const API_URL = 'https://api.openai.com/v1/completions';
+    protected $url = 'https://api.openai.com/v1/completions';
     /**
      * @var array 接口响应数据
      */
-    private $response;
+    protected $response;
+    /**
+     * @var string model used
+     */
+    protected $model;
+    /**
+     * @var Context context
+     */
+    protected $context;
+
+    public function setModel($model) {
+        $this->model = $model;
+    }
+
+    public function getModel() {
+        return $this->model;
+    }
+
+    public function setContext($context) {
+        $this->context = $context;
+    }
+
+    public function getResponse() {
+        return $this->response;
+    }
     
     /**
      * 请求接口，获取响应信息
      */
     public function create($request_body) {
-        if (!isset($request_body['prompt']) || !is_string($request_body['prompt']) || $request_body['prompt'] == '') {
-            return null;
-        }
-        // 创建上下文
-        $context = new Context();
-        // 添加消息
-        $context->addPrompt($request_body['prompt']);
-        $request_body['prompt'] = $context->getContent();
-        $this->response = $this->request(self::API_URL, $request_body);
-        // 添加回复
-        $context->addCompletion($this->getText());
+        $request_body = $this->handleRequestBody($request_body);
+        
+        $this->response = $this->request($this->url, $request_body);
+        
         return $this->response;
     }
 
     /**
-     * 返回响应信息
+     * handle the request body
      */
-    public function getResponse() {
-        return $this->response;
+    protected function handleRequestBody($request_body) {
+        // if (!isset($request_body['prompt']) || !is_string($request_body['prompt']) || $request_body['prompt'] == '') {
+        //     return null;
+        // }
+        $request_body['prompt'] = $this->context == null ? $request_body['prompt'] : $this->context->getContent();
+
+        return $request_body;
     }
 
     /**
-     * 获取回复文本
+     * return api common request body
+     */
+    protected function getCommonBody($request_body) {
+        $body = [];
+        if ($request_body['max_tokens']) {
+            $body['max_tokens'] = $request_body['max_tokens'];
+        }
+        return $body;
+    }
+
+    /**
+     * get completions text
      */
     public function getText() {
         $text = trim($this->response['choices'][0]['text']);
-        $pos = strpos($text, Context::instance()->getAiLabel());
+        $pos = strpos($text, Context::LABEL_AI);
         if ($pos === 0) {
-            $text = substr($text, strlen(Context::instance()->getAiLabel())+1);
+            $text = substr($text, strlen(Context::LABEL_AI)+1);
+        }
+        $pos = strpos($text, "ChatGPT");
+        if ($pos === 0) {
+            $text = substr($text, strlen("ChatGPT")+1);
         }
         return trim($text);
     }

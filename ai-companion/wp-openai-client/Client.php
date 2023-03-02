@@ -17,8 +17,36 @@ class Client {
      * @return Completions
      */
     public function completions($request_body) {
-        $completions = new Completions($this->apikey);
-        $completions->create($request_body);
+        $model = $request_body['model'];
+        $context = new Context($model);
+        switch ($model) {
+            case 'text-davinci-003':
+                // add message
+                $context->addPrompt($request_body['prompt']);
+                // create completion
+                $completions = new Completions($this->apikey);
+                $completions->setModel($model);
+                $completions->setContext(new Context($model));
+                $completions->create($request_body);
+                // add completion
+                $context->addCompletion($completions->getText());
+                break;
+            case 'code-davinci-002':
+                break;
+            case 'gpt-3.5-turbo':
+                // add message
+                $context->addPrompt($request_body['prompt']);
+                // create completion
+                $completions = new ChatCompletions($this->apikey);
+                $completions->setModel($model);
+                $completions->setContext(new Context($model));
+                $completions->create($request_body);
+                // add completion
+                $context->addCompletion($completions->getText());
+                break;
+        }
+        // var_dump($context->getMessage());
+        
         return $completions;
     }
 }

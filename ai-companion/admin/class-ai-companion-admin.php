@@ -162,6 +162,22 @@ class Ai_Companion_Admin {
 		register_setting('ai_companion', Ai_Companion_OPTION_KEY);
 		add_settings_section('basic', 'Basic Setting', array($this, 'renderSection'), 'ai_companion');
 		add_settings_field('openai_api_key', 'Openai Api Key', array($this, 'renderField'), 'ai_companion', 'basic', ['label_for' => 'openai_api_key', 'class' => []]);
+		add_settings_field(
+			'model', 
+			'Model', 
+			array($this, 'renderSelectField'), 
+			'ai_companion', 
+			'basic', 
+			[
+				'label_for' => 'model', 
+				'class' => [], 
+				'option_list' => [
+					'text-davinci-003' => 'text-davinci-003',
+					// 'code-davinci-002' => 'code-davinci-002',
+					'gpt-3.5-turbo' => 'gpt-3.5-turbo'
+				]
+			]
+		);
 	}
 
 	public function renderSection() {
@@ -171,9 +187,28 @@ class Ai_Companion_Admin {
 	public function renderField($args) {
 		// Get the value of the setting we've registered with register_setting()
 		$options = get_option( Ai_Companion_OPTION_KEY );
-		$input_name = Ai_Companion_OPTION_KEY . "[" . esc_attr($args['label_for']) . "]"
+		$input_name = Ai_Companion_OPTION_KEY . "[" . esc_attr($args['label_for']) . "]";
 		?>
 		<input type="text" name="<?php echo $input_name; ?>" value="<?php echo isset( $options[$args['label_for']] ) ? esc_attr( $options[$args['label_for']] ) : ''; ?>">
+		<?php
+	}
+
+	public function renderSelectField($args) {
+		// Get the value of the setting we've registered with register_setting()
+		$options = get_option( Ai_Companion_OPTION_KEY );
+		$input_name = Ai_Companion_OPTION_KEY . "[" . esc_attr($args['label_for']) . "]";
+		$option_list = $args['option_list'];
+		?>
+		<select
+			id="<?php echo esc_attr( $args['label_for'] ); ?>"
+			data-custom="<?php echo esc_attr( $args['wporg_custom_data'] ); ?>"
+			name="<?php echo $input_name; ?>">
+			<?php foreach ($option_list as $key => $opt) : ?>
+			<option value="<?php echo $key; ?>" <?php echo isset( $options[ $args['label_for'] ] ) ? ( selected( $options[ $args['label_for'] ], $key, false ) ) : ( '' ); ?>>
+				<?php esc_html_e( $opt, Ai_Companion_OPTION_KEY ); ?>
+			</option>
+			<?php endforeach ?>
+		</select>
 		<?php
 	}
 
