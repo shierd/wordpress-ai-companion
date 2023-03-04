@@ -5,7 +5,7 @@ class ChatCompletions extends Completions {
     /**
      * @var string the api url
      */
-    protected $url = 'https://api.openai.com/v1/chat/completions';
+    protected $url = '/v1/chat/completions';
 
     /**
      * handle the request body

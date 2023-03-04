@@ -3,12 +3,20 @@ namespace Dozen\OpenAi;
 
 class Client {
     /**
+     * @var string the api domain
+     */
+    protected $api;
+    /**
      * @var string YOUR_API_KEY https://platform.openai.com/account/api-keys
      */
     protected $apikey;
 
     public function __construct($apikey){
         $this->apikey = $apikey;
+    }
+
+    public function setApi($api) {
+        $this->api = $api;
     }
 
     /**
@@ -24,7 +32,7 @@ class Client {
                 // add message
                 $context->addPrompt($request_body['prompt']);
                 // create completion
-                $completions = new Completions($this->apikey);
+                $completions = new Completions($this->apikey, $this->api);
                 $completions->setModel($model);
                 $completions->setContext(new Context($model));
                 $completions->create($request_body);
@@ -37,7 +45,7 @@ class Client {
                 // add message
                 $context->addPrompt($request_body['prompt']);
                 // create completion
-                $completions = new ChatCompletions($this->apikey);
+                $completions = new ChatCompletions($this->apikey, $this->api);
                 $completions->setModel($model);
                 $completions->setContext(new Context($model));
                 $completions->create($request_body);

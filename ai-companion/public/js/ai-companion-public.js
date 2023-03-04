@@ -121,6 +121,9 @@
 				success: (res) => {
 					let data = res.data
 					this.loadMessage(msgId, data.text, data.time)
+					if (typeof hljs != 'undefined') {
+						hljs.highlightAll()
+					}
 				},
 				error: (err) => {
 					let errMsg = 'ERROR: ' + (err.responseJSON.message || 'Server Exception!')
@@ -195,6 +198,39 @@
 		// 非插件页面
 		if (!$('.aic.chat-page').length) {
 			return
+		}
+		/**
+		 * load script
+		 * @param {string} src script url
+		 * @param {function} callback callback when loading is complete
+		 */
+		function loadScript(src, callback) {
+            var _script = document.createElement('script');
+            _script.async = true;
+            _script.src = src;
+            _script.addEventListener('load', function () {
+				_script.parentNode.removeChild(_script);
+				_script.removeEventListener('load', null, false);
+                typeof callback == 'function' && callback();
+            }, false);
+            document.body.appendChild(_script);
+        }
+		/**
+		 * load style
+		 * @param {string} src style url
+		 */
+		function loadStyle(src) {
+			var link = document.createElement("link");
+			link.rel = "stylesheet";
+			link.type = "text/css";
+			link.href = src;
+			var head = document.getElementsByTagName("head")[0];
+			head.appendChild(link);
+		}
+		// check if highlight plugin is not loaded
+		if (typeof hljs === 'undefined') {
+			loadScript('/wp-content/plugins/ai-companion/public/js/highlight.min.js')
+			loadStyle('/wp-content/plugins/ai-companion/public/css/highlight-github-dark-dimmed.min.css')
 		}
 		// 初始化插件
 		let aic = new AICompanion()

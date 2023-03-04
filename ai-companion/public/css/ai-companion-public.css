@@ -322,9 +322,9 @@ body.ai-companion-chat-page::-webkit-scrollbar, .scrollable::-webkit-scrollbar {
     max-width: 100%;
     min-width: 56px;
     position: relative;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    user-select: none;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    user-select: text;
     z-index: 2;
 }
 
@@ -698,6 +698,11 @@ body.ai-companion-chat-page::-webkit-scrollbar, .scrollable::-webkit-scrollbar {
     height: var(--chat-input-size);
     width: var(--chat-input-size);
     outline: 0;
+}
+
+.chat .bubble .bubble-content .message pre {
+    margin: 0;
+    padding: 0;
 }
 
 @media only screen and (min-width: 768px) {

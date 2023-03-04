@@ -178,6 +178,7 @@ class Ai_Companion_Admin {
 				]
 			]
 		);
+		add_settings_field('api_address', 'Api Address', array($this, 'renderField'), 'ai_companion', 'basic', ['label_for' => 'api_address', 'class' => [], 'default' => 'https://api.openai.com']);
 	}
 
 	public function renderSection() {
@@ -188,8 +189,9 @@ class Ai_Companion_Admin {
 		// Get the value of the setting we've registered with register_setting()
 		$options = get_option( Ai_Companion_OPTION_KEY );
 		$input_name = Ai_Companion_OPTION_KEY . "[" . esc_attr($args['label_for']) . "]";
+		$default = $args['default'] ?? '';
 		?>
-		<input type="text" name="<?php echo $input_name; ?>" value="<?php echo isset( $options[$args['label_for']] ) ? esc_attr( $options[$args['label_for']] ) : ''; ?>">
+		<input type="text" name="<?php echo $input_name; ?>" value="<?php echo isset( $options[$args['label_for']] ) ? esc_attr( $options[$args['label_for']] ) : $default; ?>">
 		<?php
 	}
 

@@ -5,7 +5,7 @@ class Completions extends OpenAi {
     /**
      * @var string the api url
      */
-    protected $url = 'https://api.openai.com/v1/completions';
+    protected $url = '/v1/completions';
     /**
      * @var array 接口响应数据
      */

@@ -3,25 +3,33 @@ namespace Dozen\OpenAi;
 
 class OpenAi {
     /**
+     * @var string the api domain
+     */
+    protected $api = 'https://api.openai.com';
+    /**
      * @var string YOUR_API_KEY https://platform.openai.com/account/api-keys
      */
     protected $apikey;
     /**
-     * WordPress 响应
+     * WordPress response
      */
     protected $wpResponse;
 
-    public function __construct($apikey){
+    public function __construct($apikey, $api=null){
         $this->apikey = $apikey;
+        if ($api) {
+            $this->api = $api;
+        }
     }
 
     /**
-     * 请求接口
-     * @param string $url 接口地址
-     * @param array $body 接口参数
-     * @return array 接口返回数据
+     * request api
+     * @param string $uri api path
+     * @param array $body api param
+     * @return array
      */
-    protected function request($url, $body) {
+    protected function request($uri, $body) {
+        $url = $this->api . $uri;
         $args = [
 			'body' => wp_json_encode($body),
 			'headers' => [

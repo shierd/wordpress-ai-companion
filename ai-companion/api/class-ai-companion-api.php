@@ -93,6 +93,7 @@ class Ai_Companion_Api {
 			return $this->error('API_KEY not set');
 		}
 		$model = $option['model'] ?? 'text-davinci-003';
+		$api_address = $option['api_address'] ?? null;
 		$data = [
 			'model' => $model,
 			'prompt' => $message,
@@ -101,17 +102,35 @@ class Ai_Companion_Api {
 
 		try {
 			$client = new Client($apikey);
+			$client->setApi($api_address);
 			$completions = $client->completions($data);
 		} catch (\Exception $e) {
 			return $this->error($e->getMessage());
 		}
 
 		$data = [];
-		$data['text'] = $completions->getText();
+		$data['text'] = $this->handleText($completions->getText());
 		$data['time'] = $completions->getTime();
 		$data['temp'] = $completions->getWPResponse();
 		
 		return $this->success($data);
 	}
 
+	private function handleText($text) {
+		// escape html
+		$text = htmlspecialchars($text);
+		// format code, support highlight
+		$spe = 0;
+		$text = preg_replace_callback("/```(\w*)\s?\n/", function ($matches) use (&$spe) {
+			$spe++;
+			if (!empty($matches[1]) || (empty($matches[1]) && $spe % 2 == 1)) {
+				$lang = empty($matches[1]) ? 'plaintext' : $matches[1];
+				return "<pre><code class=\"language-{$lang}\">";
+			}
+			if ($matches[0] === "``` \n" || empty($matches[1]) && $spe % 2 == 0) {
+				return "</code></pre>";
+			}
+		}, $text);
+		return $text;
+	}
 }
