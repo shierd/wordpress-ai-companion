@@ -27,32 +27,46 @@ class Client {
     public function completions($request_body) {
         $model = $request_body['model'];
         $context = new Context($model);
+        // add message
+        $context->addPrompt($request_body['prompt']);
         switch ($model) {
             case 'text-davinci-003':
-                // add message
-                $context->addPrompt($request_body['prompt']);
+                if (!isset($request_body['max_tokens'])) {
+                    $request_body['max_tokens'] = 1024;
+                }
                 // create completion
                 $completions = new Completions($this->apikey, $this->api);
                 $completions->setModel($model);
-                $completions->setContext(new Context($model));
+                $completions->setContext($context);
                 $completions->create($request_body);
-                // add completion
-                $context->addCompletion($completions->getText());
                 break;
             case 'code-davinci-002':
+                // Lower temperatures give more precise results.
+                if (!isset($request_body['temperature'])) {
+                    $request_body['temperature'] = 0;
+                }
+                // Limit completion size for more precise results or lower latency.
+                if (!isset($request_body['max_tokens'])) {
+                    $request_body['max_tokens'] = 512;
+                }
+                // create completion
+                $completions = new Completions($this->apikey, $this->api);
+                $completions->setModel($model);
+                $completions->create($request_body);
                 break;
             case 'gpt-3.5-turbo':
-                // add message
-                $context->addPrompt($request_body['prompt']);
+                if (!isset($request_body['max_tokens'])) {
+                    $request_body['max_tokens'] = 1024;
+                }
                 // create completion
                 $completions = new ChatCompletions($this->apikey, $this->api);
                 $completions->setModel($model);
-                $completions->setContext(new Context($model));
+                $completions->setContext($context);
                 $completions->create($request_body);
-                // add completion
-                $context->addCompletion($completions->getText());
                 break;
         }
+        // add completion
+        $context->addCompletion($completions->getText());
         // var_dump($context->getMessage());
         
         return $completions;

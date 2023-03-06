@@ -65,6 +65,8 @@ class Context {
                     array_push($this->message, $msg);
                 }
                 break;
+            default:
+                throw new \Exception('Unsupport model');
         }
     }
 

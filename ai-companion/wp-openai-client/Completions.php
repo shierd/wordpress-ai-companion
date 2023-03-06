@@ -50,10 +50,11 @@ class Completions extends OpenAi {
      * handle the request body
      */
     protected function handleRequestBody($request_body) {
-        // if (!isset($request_body['prompt']) || !is_string($request_body['prompt']) || $request_body['prompt'] == '') {
-        //     return null;
-        // }
         $request_body['prompt'] = $this->context == null ? $request_body['prompt'] : $this->context->getContent();
+
+        if (!isset($request_body['prompt']) || !is_string($request_body['prompt']) || $request_body['prompt'] == '') {
+            throw new \Exception("prompt empty");
+        }
 
         return $request_body;
     }

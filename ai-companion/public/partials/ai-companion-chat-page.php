@@ -71,7 +71,7 @@
 
 		<div id="content" class="site-content">
 			<div id="primary" class="content-area">
-				<main id="main" class="site-main">
+				<main id="aic-main" class="aic-site-main">
 
 					<?php
 					require_once plugin_dir_path(  __FILE__  ) . 'chat-window.php';

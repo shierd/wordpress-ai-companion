@@ -173,7 +173,7 @@ class Ai_Companion_Admin {
 				'class' => [], 
 				'option_list' => [
 					'text-davinci-003' => 'text-davinci-003',
-					// 'code-davinci-002' => 'code-davinci-002',
+					'code-davinci-002' => 'code-davinci-002',
 					'gpt-3.5-turbo' => 'gpt-3.5-turbo'
 				]
 			]

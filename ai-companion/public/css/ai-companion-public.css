@@ -2,6 +2,10 @@
  * All of the CSS for your public-facing functionality should be
  * included in this file.
  */
+body.ai-companion-chat-page {
+    margin: 0;
+    padding: 0;
+}
 body.ai-companion-chat-page, .scrollable {
     scrollbar-width: none; /* firefox */
     -ms-overflow-style: none; /* IE 10+ */
@@ -251,6 +255,7 @@ body.ai-companion-chat-page::-webkit-scrollbar, .scrollable::-webkit-scrollbar {
     transform: translateY(0);
     transition: transform var(--transition-standard-out);
     width: calc(100% - var(--right-column-width));
+    box-sizing: border-box;
 }
 
 .scrollable {
@@ -500,6 +505,7 @@ body.ai-companion-chat-page::-webkit-scrollbar, .scrollable::-webkit-scrollbar {
     padding-bottom: var(--bottom);
     position: relative;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .chat-input-wrapper {
@@ -555,6 +561,7 @@ body.ai-companion-chat-page::-webkit-scrollbar, .scrollable::-webkit-scrollbar {
     --offset-translateX: 0px;
     align-items: flex-end;
     min-height: var(--chat-input-size);
+    box-sizing: border-box;
 }
 
 .chat-input .toggle-emoticons:before {
@@ -652,6 +659,7 @@ body.ai-companion-chat-page::-webkit-scrollbar, .scrollable::-webkit-scrollbar {
 .rows-wrapper .input-message-input {
     margin-top: -1px;
     max-height: 27.5rem!important;
+    box-sizing: border-box;
 }
 
 [contenteditable][data-placeholder]:before {

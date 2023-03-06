@@ -96,8 +96,7 @@ class Ai_Companion_Api {
 		$api_address = $option['api_address'] ?? null;
 		$data = [
 			'model' => $model,
-			'prompt' => $message,
-			'max_tokens' => 1024
+			'prompt' => $message
 		];
 
 		try {
@@ -110,8 +109,12 @@ class Ai_Companion_Api {
 
 		$data = [];
 		$data['text'] = $this->handleText($completions->getText());
+		// Codex model use code highlight by default
+		if ($model == 'code-davinci-002') {
+			$data['text'] = "<pre><code>{$data['text']}</code></pre>";
+		}
 		$data['time'] = $completions->getTime();
-		$data['temp'] = $completions->getWPResponse();
+		// $data['temp'] = $completions->getWPResponse();
 		
 		return $this->success($data);
 	}

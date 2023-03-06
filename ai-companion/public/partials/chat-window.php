@@ -52,7 +52,7 @@
                     <div class="btn-send-container">
                         <div class="record-ripple"></div>
                         <button class="btn-icon tgico-none btn-circle btn-send animated-button-icon rp record">
-                        <span class="tgico tgico-send"><svg t="1676789220773" class="icon" viewBox="0 0 1117 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4140" width="27" height="27"><path d="M53.865 558.08l289.92 121.6 560-492.16-491.52 530.56 371.84 140.8c8.96 3.2 19.2-1.28 22.4-10.24V848l260.48-816.64-1014.4 494.72c-8.96 4.48-12.16 14.72-8.32 23.68 2.56 3.84 5.76 7.04 9.6 8.32z m357.76 434.56l144.64-155.52-144.64-58.88v214.4z" p-id="4141"></path></svg></span>
+                        <span style="width: 28px; height: 28px;"><svg t="1676789220773" class="icon" viewBox="0 0 1117 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4140" width="28" height="28" fill="currentColor"><path d="M53.865 558.08l289.92 121.6 560-492.16-491.52 530.56 371.84 140.8c8.96 3.2 19.2-1.28 22.4-10.24V848l260.48-816.64-1014.4 494.72c-8.96 4.48-12.16 14.72-8.32 23.68 2.56 3.84 5.76 7.04 9.6 8.32z m357.76 434.56l144.64-155.52-144.64-58.88v214.4z" p-id="4141"></path></svg></span>
                         </button>
                     </div>
                 </div>
