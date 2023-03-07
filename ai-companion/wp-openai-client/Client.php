@@ -10,9 +10,19 @@ class Client {
      * @var string YOUR_API_KEY https://platform.openai.com/account/api-keys
      */
     protected $apikey;
+    /**
+     * @var string GPT model
+     */
+    private $model;
+    /**
+     * @var Context context
+     */
+    private $context;
 
-    public function __construct($apikey){
+    public function __construct($apikey, $model){
         $this->apikey = $apikey;
+        $this->model = $model;
+        $this->context = new Context($this->model);
     }
 
     public function setApi($api) {
@@ -26,7 +36,7 @@ class Client {
      */
     public function completions($request_body) {
         $model = $request_body['model'];
-        $context = new Context($model);
+        $context = $this->context;
         // add message
         $context->addPrompt($request_body['prompt']);
         switch ($model) {
@@ -70,5 +80,12 @@ class Client {
         // var_dump($context->getMessage());
         
         return $completions;
+    }
+
+    /**
+     * return the context message
+     */
+    public function getContextMessage() {
+        return $this->context->getMessage();
     }
 }

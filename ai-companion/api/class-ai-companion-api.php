@@ -11,6 +11,7 @@
  */
 
 use Dozen\OpenAi\Client;
+use Dozen\OpenAi\Context;
 
 /**
  * The public-facing functionality of the plugin.
@@ -61,6 +62,10 @@ class Ai_Companion_Api {
 			'methods' => 'POST',
 			'callback' => [$this, 'answer']
 		]);
+		register_rest_route('ai_companion', '/messages', [
+			'methods' => 'GET',
+			'callback' => [$this, 'messages']
+		]);
 	}
 
 	public function response($code, $msg, $data) {
@@ -100,7 +105,7 @@ class Ai_Companion_Api {
 		];
 
 		try {
-			$client = new Client($apikey);
+			$client = new Client($apikey, $model);
 			$client->setApi($api_address);
 			$completions = $client->completions($data);
 		} catch (\Exception $e) {
@@ -135,5 +140,29 @@ class Ai_Companion_Api {
 			}
 		}, $text);
 		return $text;
+	}
+
+	public function messages($request) {
+		$option = get_option(Ai_Companion_OPTION_KEY);
+		$model = $option['model'] ?? 'text-davinci-003';
+		$apikey = $option['openai_api_key'] ?? '';
+		if (empty($apikey)) {
+			return $this->error('API_KEY not set');
+		}
+
+		$client = new Client($apikey, $model);
+		$message = $client->getContextMessage();
+		$list = [];
+		foreach ($message as $msg) {
+			if ($msg['role'] == Context::LABEL_SYS) {
+				continue;
+			}
+			$msg['content'] = $this->handleText($msg['content']);
+			$list[] = $msg;
+		}
+
+		return $this->success([
+			'list' => $list
+		]);
 	}
 }

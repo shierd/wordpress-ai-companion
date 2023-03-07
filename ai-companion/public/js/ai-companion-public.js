@@ -35,8 +35,11 @@
 		}
 
 		on(selector, event, child, data, func) {
-			func = func || child
-			$(selector).on(event, (e) => {
+			if (typeof func == 'undefined') {
+				func = child
+				child = undefined
+			}
+			$(selector).on(event, child, data, (e) => {
 				this[func](e.target, e)
 			})
 		}
@@ -44,6 +47,35 @@
 		init() {
 			this.on('.aic .chat .input-message-input', 'keyup', 'onInputMessageChange')
 			this.on('.aic .chat .chat-input .btn-send', 'click', 'onButtonSendClick')
+			this.on('.aic .chat', 'click', '.bubble .bubble-content .btn-copy', null, 'onButtonCopyClick')
+			this.loadOldMessage()
+		}
+
+		loadOldMessage() {
+			$.ajax({
+				url: BASE_API + '/ai_companion/messages',
+				type: 'GET',
+				success: (res) => {
+					let list = res.data ? res.data.list : []
+					list.forEach(item => {
+						if (item.role == 'user') {
+							this.addMessage(item.content, true)
+						} else if (item.role == 'assistant') {
+							this.addMessage(item.content, false)
+						}
+					});
+					this.highlightAll()
+				},
+				error: (err) => {
+					console.error("loadOldMessage error: ", err)
+				}
+			})
+		}
+
+		highlightAll() {
+			if (typeof hljs != 'undefined') {
+				hljs.highlightAll()
+			}
 		}
 
 		onInputMessageChange(target, e) {
@@ -97,6 +129,23 @@
 			this.updateMessageInput()
 		}
 
+		onButtonCopyClick(target) {
+			let msgHTML = $.parseHTML($(target).siblings('.message').html())
+			msgHTML.pop()
+			msgHTML.pop()
+			let message = $(msgHTML).text()
+			if (window.isSecureContext) {
+				navigator.clipboard.writeText(message).then(() => {
+					$(target).text('copied')
+					$(target).one('mouseout', function(e) {
+						$(e.target).text('copy')
+					})
+				}).catch((err) => {
+					console.error('Failed to copy', err)
+				})
+			}
+		}
+
 		updateMessageInput() {
 			let input = $('.aic .chat-input .rows-wrapper .input-message-input')
 			let message = input.text()
@@ -121,9 +170,7 @@
 				success: (res) => {
 					let data = res.data
 					this.loadMessage(msgId, data.text, data.time)
-					if (typeof hljs != 'undefined') {
-						hljs.highlightAll()
-					}
+					this.highlightAll()
 				},
 				error: (err) => {
 					let errMsg = 'ERROR: ' + (err.responseJSON.message || 'Server Exception!')
@@ -149,6 +196,7 @@
 					'<div class="loading-bounce"><div class="bounce"></div><div class="bounce"></div><div class="bounce"></div></div>' +
 					'</div>' +
 					'<svg viewBox="0 0 11 20" width="11" height="20" class="bubble-tail"><use href="#message-tail-filled"></use></svg>' +
+					'<span class="btn-copy">copy</span>' +
 				'</div>' +
 				'</div>' +
 				'</div>' +
