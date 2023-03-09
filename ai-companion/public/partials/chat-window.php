@@ -45,7 +45,8 @@
                                     <div class="input-message-input i18n scrollable scrollable-y no-scrollbar" contenteditable="true" dir="auto" data-placeholder="Message" style="transition-duration: 181ms; height: 37px;" data-peer-id="1594407922"></div>
                                     <!-- <div contenteditable="true" tabindex="-1" class="input-message-input i18n scrollable scrollable-y no-scrollbar input-field-input-fake"></div> -->
                                 </div>
-                                <!-- <button class="btn-icon tgico-scheduled btn-scheduled float hide show"></button><button class="btn-icon tgico-botcom toggle-reply-markup float show"></button> -->
+                                <button class="btn-icon tgico-scheduled btn-clean float hide show"></button>
+                                <!-- <button class="btn-icon tgico-botcom toggle-reply-markup float show"></button> -->
                             </div>
                         </div>
                     </div>

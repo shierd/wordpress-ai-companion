@@ -119,4 +119,9 @@ class Context {
     public function getMessage() {
         return $this->message;
     }
+
+    public function cleanMessage() {
+        $this->message = [];
+        $_SESSION[self::MESSAGE_KEY] = $this->message;
+    }
 }

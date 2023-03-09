@@ -88,4 +88,8 @@ class Client {
     public function getContextMessage() {
         return $this->context->getMessage();
     }
+
+    public function cleanContext() {
+        $this->context->cleanMessage();
+    }
 }

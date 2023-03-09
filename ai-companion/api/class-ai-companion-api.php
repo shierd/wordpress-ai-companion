@@ -66,9 +66,13 @@ class Ai_Companion_Api {
 			'methods' => 'GET',
 			'callback' => [$this, 'messages']
 		]);
+		register_rest_route('ai_companion', '/clean', [
+			'methods' => 'POST',
+			'callback' => [$this, 'clean']
+		]);
 	}
 
-	public function response($code, $msg, $data) {
+	private function response($code, $msg, $data) {
 		$result = [
 			'code' => $code,
 			'data' => $data,
@@ -77,11 +81,11 @@ class Ai_Companion_Api {
 		return new WP_REST_Response($result);
 	}
 
-	public function success($data=[]) {
+	private function success($data=[]) {
 		return $this->response(600, 'success', $data);
 	}
 
-	public function error($msg='error', $data=[]) {
+	private function error($msg='error', $data=[]) {
 		return new WP_Error( 601, __( $msg, 'text-domain' ), $data );
 	}
 
@@ -164,5 +168,19 @@ class Ai_Companion_Api {
 		return $this->success([
 			'list' => $list
 		]);
+	}
+
+	public function clean($request) {
+		$option = get_option(Ai_Companion_OPTION_KEY);
+		$model = $option['model'] ?? 'text-davinci-003';
+		$apikey = $option['openai_api_key'] ?? '';
+		if (empty($apikey)) {
+			return $this->error('API_KEY not set');
+		}
+
+		$client = new Client($apikey, $model);
+		$client->cleanContext();
+
+		return $this->success();
 	}
 }

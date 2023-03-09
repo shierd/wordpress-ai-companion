@@ -48,6 +48,7 @@
 			this.on('.aic .chat .input-message-input', 'keyup', 'onInputMessageChange')
 			this.on('.aic .chat .chat-input .btn-send', 'click', 'onButtonSendClick')
 			this.on('.aic .chat', 'click', '.bubble .bubble-content .btn-copy', null, 'onButtonCopyClick')
+			this.on('.aic .chat .chat-input .btn-clean', 'click', 'onButtonClean')
 			this.loadOldMessage()
 		}
 
@@ -144,6 +145,19 @@
 					console.error('Failed to copy', err)
 				})
 			}
+		}
+
+		onButtonClean() {
+			$.ajax({
+				url: BASE_API + '/ai_companion/clean',
+				type: 'POST',
+				success: (res) => {
+					$('.aic .chat .bubbles .bubbles-date-group').empty()
+				},
+				error: (err) => {
+					console.error("onButtonClean error: ", err)
+				}
+			})
 		}
 
 		updateMessageInput() {

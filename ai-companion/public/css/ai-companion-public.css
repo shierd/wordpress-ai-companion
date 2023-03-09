@@ -564,8 +564,16 @@ body.ai-companion-chat-page::-webkit-scrollbar, .scrollable::-webkit-scrollbar {
     box-sizing: border-box;
 }
 
+.chat-input .rows-wrapper button:hover, .chat-input .rows-wrapper button:focus {
+    background: none;
+}
+
 .chat-input .toggle-emoticons:before {
     content: "\263a";
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei New", STHeiti Light, sans-serif;
+}
+.chat-input .btn-clean:before {
+    content: "\1F4A8";
     font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei New", STHeiti Light, sans-serif;
 }
 
