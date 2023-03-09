@@ -59,8 +59,14 @@ class Ai_Companion_Api {
 
 	public function registerRoutes() {
 		register_rest_route('ai_companion', '/answer', [
-			'methods' => 'POST',
-			'callback' => [$this, 'answer']
+			[
+				'methods' => 'POST',
+				'callback' => [$this, 'answer']
+			],
+			[
+				'methods' => 'GET',
+				'callback' => [$this, 'answer']
+			]
 		]);
 		register_rest_route('ai_companion', '/messages', [
 			'methods' => 'GET',
@@ -89,6 +95,18 @@ class Ai_Companion_Api {
 		return new WP_Error( 601, __( $msg, 'text-domain' ), $data );
 	}
 
+	public function stream($event) {
+		$msg = $event['choices'][0]['delta']['content'] ?? '';
+		$done = $event['done'] ?? 0;
+		$data = json_encode(['done' => $done, 'text' => $msg]);
+		echo "event: msg\n";
+		echo "data: {$data}\n";
+		echo "\n";
+        ob_flush();
+        flush();
+        // sleep(1);
+	}
+
 	public function answer($request) {
 		$params = $request->get_params();
 		$message = $params['message'];
@@ -103,14 +121,23 @@ class Ai_Companion_Api {
 		}
 		$model = $option['model'] ?? 'text-davinci-003';
 		$api_address = $option['api_address'] ?? null;
+		$stream = empty($option['stream']) ? false : true;
 		$data = [
 			'model' => $model,
-			'prompt' => $message
+			'prompt' => $message,
+			'stream' => $stream
 		];
 
 		try {
 			$client = new Client($apikey, $model);
 			$client->setApi($api_address);
+			if ($stream) {
+				header("Cache-Control: no-cache");
+				header("Content-Type: text/event-stream");
+				$client->setStreamHandler(array($this, 'stream'));
+				$client->completions($data);
+				exit;
+			}
 			$completions = $client->completions($data);
 		} catch (\Exception $e) {
 			return $this->error($e->getMessage());

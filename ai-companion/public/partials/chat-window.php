@@ -63,4 +63,6 @@
 </div>
 <script>
     const BASE_API = "<?php global $wp_rewrite; echo $wp_rewrite->using_permalinks() ? '/'.rest_get_url_prefix() : '/index.php?rest_route='; ?>"
+    <?php $option = get_option(Ai_Companion_OPTION_KEY); ?>
+    const IS_STREAM = <?php echo empty($option['stream']) ? 'false' : 'true'; ?>
 </script>

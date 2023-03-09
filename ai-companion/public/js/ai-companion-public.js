@@ -29,6 +29,31 @@
 	 * practising this, we should strive to set a better example in our own work.
 	 */
 
+	class Message {
+		mid;
+		bubbleEle;
+		messageEle;
+		textNode;
+		text = "";
+
+		constructor (id) {
+			this.mid = id
+			this.bubbleEle = $('.bubbles-group .bubble[data-message-id="'+this.mid+'"]')[0]
+			this.messageEle = $(this.bubbleEle).find('.bubble-content .message')[0]
+			let emptyTextNode = document.createTextNode('')
+			this.textNode = this.messageEle.insertBefore(emptyTextNode, this.messageEle.firstChild)
+		}
+
+		unloading() {
+			$(this.bubbleEle).removeClass('is-loading')
+		}
+
+		appendText(text) {
+			this.text += text
+			this.textNode.nodeValue = this.text
+		}
+	}
+
 	class AICompanion {
 		constructor () {
 
@@ -177,20 +202,42 @@
 			}
 			this.addMessage(message, true)
 			let msgId = this.loadingMessage()
-			$.ajax({
-				url: BASE_API + '/ai_companion/answer',
-				type: 'POST',
-				data: {message},
-				success: (res) => {
-					let data = res.data
-					this.loadMessage(msgId, data.text, data.time)
-					this.highlightAll()
-				},
-				error: (err) => {
-					let errMsg = 'ERROR: ' + (err.responseJSON.message || 'Server Exception!')
-					this.loadMessage(msgId, errMsg, this.getTime(), true)
+			
+			let url = BASE_API + '/ai_companion/answer'
+			if (IS_STREAM) {
+				var mMsg = new Message(msgId)
+				const evtSource = new EventSource(url + '?message=' + message);
+				evtSource.onopen = () => {
+					mMsg.unloading()
 				}
-			})
+				evtSource.addEventListener('msg', (event) => {
+					let data = JSON.parse(event.data)
+					if (data.done == 1) {
+						evtSource.close()
+					} else {
+						mMsg.appendText(data.text)
+					}
+				})
+				evtSource.onerror = (err) => {
+					console.error("on stream message error: ", err)
+				}
+			} else {
+				$.ajax({
+					url: url,
+					type: 'POST',
+					data: {message},
+					success: (res) => {
+						let data = res.data
+						this.loadMessage(msgId, data.text, data.time)
+						this.highlightAll()
+					},
+					error: (err) => {
+						let errMsg = 'ERROR: ' + (err.responseJSON.message || 'Server Exception!')
+						this.loadMessage(msgId, errMsg, this.getTime(), true)
+					}
+				})
+			}
+			
 			$('.aic .chat-input .rows-wrapper .input-message-input').text("")
 		}
 

@@ -178,6 +178,21 @@ class Ai_Companion_Admin {
 				]
 			]
 		);
+		add_settings_field(
+			'stream', 
+			'Stream Mode', 
+			array($this, 'renderSelectField'), 
+			'ai_companion', 
+			'basic', 
+			[
+				'label_for' => 'stream', 
+				'class' => [], 
+				'option_list' => [
+					'0' => 'No',
+					'1' => 'Yes'
+				]
+			]
+		);
 		add_settings_field('api_address', 'Api Address', array($this, 'renderField'), 'ai_companion', 'basic', ['label_for' => 'api_address', 'class' => [], 'default' => 'https://api.openai.com']);
 	}
 

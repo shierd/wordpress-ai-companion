@@ -41,7 +41,11 @@ class Completions extends OpenAi {
     public function create($request_body) {
         $request_body = $this->handleRequestBody($request_body);
         
-        $this->response = $this->request($this->url, $request_body);
+        if (!empty($request_body['stream'])) {
+            $this->response = $this->stream($this->url, $request_body);
+        } else {
+            $this->response = $this->request($this->url, $request_body);
+        }
         
         return $this->response;
     }
@@ -64,8 +68,11 @@ class Completions extends OpenAi {
      */
     protected function getCommonBody($request_body) {
         $body = [];
-        if ($request_body['max_tokens']) {
+        if (isset($request_body['max_tokens'])) {
             $body['max_tokens'] = $request_body['max_tokens'];
+        }
+        if (isset($request_body['stream'])) {
+            $body['stream'] = $request_body['stream'];
         }
         return $body;
     }

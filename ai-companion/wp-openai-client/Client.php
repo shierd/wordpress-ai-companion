@@ -18,6 +18,10 @@ class Client {
      * @var Context context
      */
     private $context;
+    /**
+     * @var callable stream callback function
+     */
+    private $streamHandler;
 
     public function __construct($apikey, $model){
         $this->apikey = $apikey;
@@ -27,6 +31,10 @@ class Client {
 
     public function setApi($api) {
         $this->api = $api;
+    }
+
+    public function setStreamHandler($streamHandler) {
+        $this->streamHandler = $streamHandler;
     }
 
     /**
@@ -39,6 +47,8 @@ class Client {
         $context = $this->context;
         // add message
         $context->addPrompt($request_body['prompt']);
+
+        $completions = null;
         switch ($model) {
             case 'text-davinci-003':
                 if (!isset($request_body['max_tokens'])) {
@@ -46,9 +56,7 @@ class Client {
                 }
                 // create completion
                 $completions = new Completions($this->apikey, $this->api);
-                $completions->setModel($model);
                 $completions->setContext($context);
-                $completions->create($request_body);
                 break;
             case 'code-davinci-002':
                 // Lower temperatures give more precise results.
@@ -61,8 +69,6 @@ class Client {
                 }
                 // create completion
                 $completions = new Completions($this->apikey, $this->api);
-                $completions->setModel($model);
-                $completions->create($request_body);
                 break;
             case 'gpt-3.5-turbo':
                 if (!isset($request_body['max_tokens'])) {
@@ -70,12 +76,17 @@ class Client {
                 }
                 // create completion
                 $completions = new ChatCompletions($this->apikey, $this->api);
-                $completions->setModel($model);
                 $completions->setContext($context);
-                $completions->create($request_body);
                 break;
         }
-        // add completion
+        // set completions
+        $completions->setModel($model);
+        if ($this->streamHandler) {
+            $completions->setStream($this->streamHandler);
+        }
+        $completions->create($request_body);
+
+        // add completion to context
         $context->addCompletion($completions->getText());
         // var_dump($context->getMessage());
         

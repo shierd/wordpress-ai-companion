@@ -27,10 +27,11 @@ class ChatCompletions extends Completions {
      */
     public function getText() {
         $msg = $this->response['choices'][0];
-        if (!isset($msg['message'])) {
+        $k = $this->stream ? 'delta' : 'message';
+        if (!isset($msg[$k])) {
             throw new \Exception('empty message');
         }
-        $text = trim($msg['message']['content']);
+        $text = trim($msg[$k]['content']);
         return $text;
     }
 }
