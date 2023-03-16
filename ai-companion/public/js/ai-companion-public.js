@@ -33,15 +33,30 @@
 		mid;
 		bubbleEle;
 		messageEle;
-		textNode;
-		text = "";
+		textEle;
+
+		text = ""
+		tIdx = 0
+		tIng = 0
+		tEle = null
+		tEleIdx = 0
+		tDone = false
+
+		HTMLDecode = {
+			"&lt;"  : "<", 
+			"&gt;"  : ">", 
+			"&amp;" : "&", 
+			"&nbsp;": " ", 
+			"&quot;": "\"", 
+			"&copy;": "©"
+	   }
 
 		constructor (id) {
 			this.mid = id
 			this.bubbleEle = $('.bubbles-group .bubble[data-message-id="'+this.mid+'"]')[0]
 			this.messageEle = $(this.bubbleEle).find('.bubble-content .message')[0]
-			let emptyTextNode = document.createTextNode('')
-			this.textNode = this.messageEle.insertBefore(emptyTextNode, this.messageEle.firstChild)
+			this.textEle = this.messageEle.insertBefore(document.createElement('div'), this.messageEle.firstChild)
+			this.textEle.className = 'text'
 		}
 
 		unloading() {
@@ -50,7 +65,62 @@
 
 		appendText(text) {
 			this.text += text
-			this.textNode.nodeValue = this.text
+		}
+
+		typeText() {
+			if (this.tIng) {
+				return
+			}
+			this.tEle = this.textEle
+			this.tIng = setInterval(() => {
+				if (this.tIdx < this.text.length) {
+					this.typing()
+				} else if (this.tDone) {
+					clearInterval(this.tIng)
+					AICompanion.highlightAll()
+				}
+				AICompanion.scrollBottom()
+			}, 25)
+		}
+
+		typeDone() {
+			this.tDone = true
+		}
+
+		typing() {
+			let c = this.text.charAt(this.tIdx)
+			this.tIdx++
+
+			if (c === '<') {
+				this.tmpTag = c
+			} else if (c === '>') {
+				this.tmpTag += c
+				this.tEle.innerHTML += this.tmpTag
+				let m = this.tmpTag.match(/<\/\w+>/)
+				if (m && m.length) {
+					this.tEleIdx--
+					this.tEle = this.tEle.parentNode
+				} else {
+					let tagName = this.tmpTag.match(/<(\w+)/)
+					if (tagName.length == 2) {
+						tagName = tagName[1]
+					}
+					this.tEle = this.tEle.lastElementChild
+					this.tEleIdx++
+				}
+				this.tmpTag = ''
+			} else if (c === '&') {
+				this.tmpTag = c
+			} else if (c === ';') {
+				this.tmpTag += c
+				let t = this.HTMLDecode[this.tmpTag] || this.tmpTag
+				this.tEle.innerHTML += t
+				this.tmpTag = ''
+			} else if (this.tmpTag) {
+				this.tmpTag += c
+			} else {
+				this.tEle.innerHTML += c
+			}
 		}
 	}
 
@@ -90,7 +160,7 @@
 							this.addMessage(item.content, false)
 						}
 					});
-					this.highlightAll()
+					AICompanion.highlightAll()
 				},
 				error: (err) => {
 					console.error("loadOldMessage error: ", err)
@@ -98,10 +168,14 @@
 			})
 		}
 
-		highlightAll() {
+		static highlightAll() {
 			if (typeof hljs != 'undefined') {
 				hljs.highlightAll()
 			}
+		}
+
+		static scrollBottom() {
+			$('.aic .chat .bubbles>.scrollable.scrollable-y').scrollTop($('.aic .chat .bubbles>.scrollable.scrollable-y').prop('scrollHeight'))
 		}
 
 		onInputMessageChange(target, e) {
@@ -214,12 +288,16 @@
 					let data = JSON.parse(event.data)
 					if (data.done == 1) {
 						evtSource.close()
+						mMsg.typeDone()
 					} else {
 						mMsg.appendText(data.text)
 					}
+					mMsg.typeText()
 				})
 				evtSource.onerror = (err) => {
 					console.error("on stream message error: ", err)
+					this.loadMessage(msgId, 'Server Error!', this.getTime(), true)
+					evtSource.close()
 				}
 			} else {
 				$.ajax({
@@ -229,7 +307,7 @@
 					success: (res) => {
 						let data = res.data
 						this.loadMessage(msgId, data.text, data.time)
-						this.highlightAll()
+						AICompanion.highlightAll()
 					},
 					error: (err) => {
 						let errMsg = 'ERROR: ' + (err.responseJSON.message || 'Server Exception!')
@@ -275,14 +353,14 @@
 		addMessage(message, is_out) {
 			let msgDom = this.getMessageDom(message, this.getTime(), is_out)
 			$('.aic .chat .bubbles .bubbles-date-group').append(msgDom)
-			this.scrollBottom()
+			AICompanion.scrollBottom()
 		}
 
 		loadingMessage() {
 			let msgId = Date.now()
 			let msgDom = this.getMessageDom(msgId, this.getTime(), false, true)
 			$('.aic .chat .bubbles .bubbles-date-group').append(msgDom)
-			this.scrollBottom()
+			AICompanion.scrollBottom()
 			return msgId
 		}
 
@@ -295,11 +373,7 @@
 			let messageHTML = messageBubble.find('.bubble-content .message').html()
 			messageHTML = message + messageHTML
 			messageBubble.find('.bubble-content .message').html(messageHTML)
-			this.scrollBottom()
-		}
-
-		scrollBottom() {
-			$('.aic .chat .bubbles>.scrollable.scrollable-y').scrollTop($('.aic .chat .bubbles>.scrollable.scrollable-y').prop('scrollHeight'))
+			AICompanion.scrollBottom()
 		}
 	}
 
@@ -349,7 +423,7 @@
 			let aicOffsetTop = $('.aic.chat-page').offset().top
 			let windowHeight = window.innerHeight
 			let aicHeight = windowHeight - aicOffsetTop
-			$('.aic.chat-page').animate({height: aicHeight}, 200, () => {aic.scrollBottom()})
+			$('.aic.chat-page').animate({height: aicHeight}, 200, () => {AICompanion.scrollBottom()})
 		}
 		setWindowHeight()
 		window.onresize = function () {

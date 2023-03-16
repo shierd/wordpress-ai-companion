@@ -43,6 +43,8 @@ class Ai_Companion_Api {
 	 */
 	private $version;
 
+	private $spe = 0;
+
 	/**
 	 * Initialize the class and set its properties.
 	 *
@@ -96,7 +98,7 @@ class Ai_Companion_Api {
 	}
 
 	public function stream($event) {
-		$msg = $event['choices'][0]['delta']['content'] ?? '';
+		$msg = $this->handleText($event['choices'][0]['delta']['content'] ?? '');
 		$done = $event['done'] ?? 0;
 		$data = json_encode(['done' => $done, 'text' => $msg]);
 		echo "event: msg\n";
@@ -104,7 +106,6 @@ class Ai_Companion_Api {
 		echo "\n";
         ob_flush();
         flush();
-        // sleep(1);
 	}
 
 	public function answer($request) {
@@ -134,6 +135,7 @@ class Ai_Companion_Api {
 			if ($stream) {
 				header("Cache-Control: no-cache");
 				header("Content-Type: text/event-stream");
+				header('X-Accel-Buffering: no');
 				$client->setStreamHandler(array($this, 'stream'));
 				$client->completions($data);
 				exit;
@@ -159,15 +161,14 @@ class Ai_Companion_Api {
 		// escape html
 		$text = htmlspecialchars($text);
 		// format code, support highlight
-		$spe = 0;
-		$text = preg_replace_callback("/```(\w*)\s?\n/", function ($matches) use (&$spe) {
-			$spe++;
-			if (!empty($matches[1]) || (empty($matches[1]) && $spe % 2 == 1)) {
+		$text = preg_replace_callback("/```(\w*)\s?\n?/", function ($matches) {
+			$this->spe++;
+			if (!empty($matches[1]) || (empty($matches[1]) && $this->spe % 2 == 1)) {
 				$lang = empty($matches[1]) ? 'plaintext' : $matches[1];
 				return "<pre><code class=\"language-{$lang}\">";
 			}
-			if ($matches[0] === "``` \n" || empty($matches[1]) && $spe % 2 == 0) {
-				return "</code></pre>";
+			if ($matches[0] === "``` \n" || (empty($matches[1]) && $this->spe % 2 == 0)) {
+				return "</code></pre>\n";
 			}
 		}, $text);
 		return $text;

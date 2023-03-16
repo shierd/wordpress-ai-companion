@@ -34,6 +34,10 @@ class OpenAi {
      * @var array stream event array
      */
     protected $streamEvent = [];
+    /**
+     * @var string stream line buffer
+     */
+    protected $streamLineBuffer = '';
 
     public function __construct($apikey, $api=null){
         $this->apikey = $apikey;
@@ -88,6 +92,7 @@ class OpenAi {
         $hooks = new \WP_HTTP_Requests_Hooks( $url, $body );
         $hooks->register('request.progress', array($this, 'streamProgress'));
         $options['hooks'] = $hooks;
+        $options['timeout'] = 20;
 
         $requests_response = \Requests::request( $url, $headers, $data, $type, $options );
 
@@ -116,8 +121,21 @@ class OpenAi {
         // push stream event to $streamEvent
         $events = $this->retrieveStreamEvent($this->streamContent);
         foreach ($events as $event) {
-            $this->streamMessage .= $event['choices'][0]['delta']['content'] ?? '';
+            $text = $event['choices'][0]['delta']['content'] ?? '';
+            $this->streamMessage .= $text;
             array_push($this->streamEvent, $event);
+            $this->streamLineBuffer .= $text;
+            $lp = mb_strpos($this->streamLineBuffer, "\n");
+            if (strpos($this->streamLineBuffer, '`') === 0 && $lp === false) {
+                continue;
+            } else if (strpos($this->streamLineBuffer, '`') === 0 && $lp !== false) {
+                $line = mb_substr($this->streamLineBuffer, 0, $lp+1);
+                $event['choices'][0]['delta']['content'] = $line;
+            }
+            while($lp !== false) {
+                $this->streamLineBuffer = mb_substr($this->streamLineBuffer, $lp+1);
+                $lp = mb_strpos($this->streamLineBuffer, "\n");
+            }
             call_user_func($this->streamCallback, $event);
         }
     }

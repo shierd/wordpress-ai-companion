@@ -251,7 +251,7 @@ body.ai-companion-chat-page::-webkit-scrollbar, .scrollable::-webkit-scrollbar {
     margin: 0 auto;
     max-width: var(--messages-container-width);
     min-height: 100%;
-    padding: 0 var(--chat-input-padding);
+    padding: .25rem var(--chat-input-padding) 0;
     transform: translateY(0);
     transition: transform var(--transition-standard-out);
     width: calc(100% - var(--right-column-width));
